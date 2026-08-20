@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Marquee Router — Movie Lineup Planner</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0A0A0A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Marquee Router">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0A0A0A;
+    --panel: #161311;
+    --panel-raised: #1F1B17;
+    --gold: #E8B23D;
+    --red: #B3261E;
+    --red-deep: #7A1913;
+    --overlap: #D9884A;
+    --cream: #F2EAE0;
+    --muted: #8C8478;
+    --line: #2C2823;
+    --good: #6FA97A;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 15% -10%, rgba(232,178,61,0.07), transparent 40%),
+      radial-gradient(circle at 85% 0%, rgba(179,38,30,0.10), transparent 45%),
+      var(--bg);
+    color:var(--cream);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+  }
+  .sprockets{
+    height:14px;
+    background-image: repeating-linear-gradient(90deg, var(--gold) 0 8px, transparent 8px 20px);
+    background-color: var(--red-deep);
+    border-top:1px solid var(--red);
+    border-bottom:1px solid var(--red);
+  }
+  header{ padding:34px 24px 18px; text-align:center; }
+  header .eyebrow{ font-family:'JetBrains Mono',monospace; letter-spacing:0.3em; font-size:11px; color:var(--red); text-transform:uppercase; }
+  header h1{ font-family:'Bebas Neue',sans-serif; font-size:52px; letter-spacing:0.04em; margin:4px 0 6px; text-shadow:0 0 22px rgba(232,178,61,0.22), 0 0 40px rgba(179,38,30,0.18); }
+  header p{ color:var(--muted); font-size:14px; max-width:620px; margin:0 auto; line-height:1.5; }
+
+  .wrap{ max-width:1200px; margin:0 auto; padding:28px 20px 80px; display:grid; grid-template-columns: 420px 1fr; gap:24px; }
+  @media (max-width: 900px){ .wrap{ grid-template-columns: 1fr; } }
+
+  .panel{ background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--red-deep); border-radius:6px; padding:20px; }
+  .panel + .panel{ margin-top:20px; }
+  .panel h2{ font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:0.03em; margin:0 0 4px; color:var(--gold); }
+  .panel .sub{ color:var(--muted); font-size:12.5px; margin:0 0 16px; line-height:1.5; }
+
+  label{ display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:5px; }
+  input[type=text], input[type=time], input[type=number], input[type=password], select{
+    width:100%; background:var(--panel-raised); border:1px solid var(--line); color:var(--cream);
+    padding:9px 10px; border-radius:4px; font-family:'Inter',sans-serif; font-size:14px;
+    margin-bottom:12px;
+  }
+  .row input, .row3 input, .film-sub-inputs input, .add-showing-row input, .add-showing-row select, .travel-row input{ margin-bottom:0; }
+  select:disabled{ color:var(--muted); }
+  input:focus{ outline:2px solid var(--gold); outline-offset:1px; }
+  .row{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px; }
+  .row3{ display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px; margin-bottom:10px; align-items:end; }
+
+  .btn{ font-family:'Inter',sans-serif; font-weight:600; font-size:13.5px; border:none; border-radius:4px; padding:10px 16px; cursor:pointer; transition: transform .08s ease, filter .15s ease; }
+  .btn:hover{ filter:brightness(1.1); }
+  .btn:active{ transform: scale(0.98); }
+  .btn-primary{ background:var(--gold); color:#1A1410; width:100%; }
+  .btn-ghost{ background:transparent; border:1px solid var(--line); color:var(--cream); }
+  .btn-small{ padding:7px 10px; font-size:12.5px; white-space:nowrap; }
+
+  .film-card{ background:var(--panel-raised); border:1px solid var(--line); border-radius:5px; padding:14px; margin-bottom:12px; transition: opacity .15s ease; }
+  .film-card.deselected{ opacity:0.45; }
+  .film-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:10px; }
+  .film-title-row{ display:flex; align-items:center; gap:9px; cursor:pointer; margin:0; text-transform:none; letter-spacing:normal; }
+  .film-check{ width:16px; height:16px; accent-color:var(--gold); margin:0; flex-shrink:0; cursor:pointer; }
+  .film-title{ font-weight:700; font-size:15.5px; color:var(--cream); }
+  .film-sub-inputs{ display:flex; gap:8px; margin-top:6px; }
+  .film-sub-inputs label{ margin:0 0 3px; }
+  .film-sub-inputs .mini{ width:80px; }
+  .film-sub-inputs input{ padding:6px 8px; font-size:12.5px; }
+  .remove{ background:none; border:none; color:var(--red); cursor:pointer; font-size:16px; line-height:1; padding:2px 4px; }
+  .remove:hover{ color:#e0684f; }
+
+  .showing-chip{ display:inline-flex; align-items:center; gap:6px; background:rgba(232,178,61,0.1); border:1px solid rgba(232,178,61,0.3); color:var(--gold); font-family:'JetBrains Mono',monospace; font-size:11.5px; padding:4px 8px; border-radius:3px; margin:4px 6px 0 0; }
+  .showing-chip button{ background:none; border:none; color:var(--red); cursor:pointer; font-size:12px; padding:0; }
+
+  .theater-row{ display:flex; align-items:center; justify-content:space-between; background:var(--panel-raised); border:1px solid var(--line); border-radius:4px; padding:8px 10px; margin-top:6px; transition: opacity .15s ease; }
+  .theater-row.excluded{ opacity:0.45; }
+  .theater-row-label{ display:flex; align-items:center; gap:8px; cursor:pointer; margin:0; text-transform:none; letter-spacing:normal; font-size:13px; color:var(--cream); }
+
+  .add-showing-row{ display:grid; grid-template-columns: 132px 1fr 100px auto; gap:6px; margin-top:10px; }
+  .add-showing-row input[type=date]{ padding:7px 8px; font-size:12.5px; }
+  .alist-check-wrap{ display:flex; align-items:center; height:33px; }
+  .alist-check-wrap input{ width:16px; height:16px; accent-color:var(--gold); margin:0; cursor:pointer; }
+  .add-showing-row input{ padding:7px 8px; font-size:12.5px; }
+
+  .empty{ color:var(--muted); font-size:13px; text-align:center; padding:20px 0; }
+
+  .travel-grid{ display:flex; flex-direction:column; gap:8px; }
+  .travel-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--panel-raised); border:1px solid var(--line); border-radius:4px; padding:8px 12px; }
+  .travel-row span{ font-size:13px; }
+  .travel-row input{ width:80px; text-align:center; }
+  .maps-box{ background:var(--panel-raised); border:1px solid var(--line); border-radius:4px; padding:12px; margin-top:14px; }
+  .maps-box p{ font-size:11.5px; color:var(--muted); margin:0 0 8px; line-height:1.5; }
+
+  .results-head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:14px; }
+  .count-badge{ font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted); }
+
+  .pagination{ display:flex; justify-content:space-between; align-items:center; margin-top:6px; }
+  .page-indicator{ font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted); }
+
+  .plan-card{ background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:18px 20px; margin-bottom:18px; }
+  .plan-card.best{ border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold), 0 0 26px rgba(179,38,30,0.18), 0 8px 24px rgba(0,0,0,0.4); }
+  .plan-rank{ font-family:'Bebas Neue',sans-serif; font-size:13px; letter-spacing:0.1em; color:var(--gold); text-transform:uppercase; }
+  .plan-stats{ font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted); margin-top:2px; }
+  .skip-note{ font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--red); margin-top:4px; }
+
+  .reel{ margin-top:14px; display:flex; flex-direction:column; }
+  .reel-item{ display:grid; grid-template-columns: 108px 1fr; gap:14px; padding:10px 0; border-top:1px solid var(--line); }
+  .reel-item:first-child{ border-top:none; }
+  .reel-time{ font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--gold); line-height:1.5; }
+  .alist-badge{ display:inline-block; font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.05em; background:rgba(232,178,61,0.15); color:var(--gold); border:1px solid rgba(232,178,61,0.35); padding:1px 5px; border-radius:3px; vertical-align:middle; }
+  .alist-warn{ color:var(--red); }
+  .reel-film{ font-weight:700; font-size:14.5px; }
+  .reel-sub{ font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--muted); margin-top:3px; }
+  .gap-row{ display:flex; align-items:center; gap:10px; padding:4px 0 4px 90px; }
+  .gap-line{ flex:1; height:1px; background: repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 12px); }
+  .gap-label{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted); white-space:nowrap; }
+  .gap-label.wait{ color:var(--good); }
+  .gap-label.travel{ color:var(--red); }
+  .gap-label.overlap{ color:var(--overlap); }
+
+  .filter-row{ display:flex; flex-wrap:wrap; gap:16px; margin-bottom:16px; }
+  .filter-group{ display:flex; flex-direction:column; gap:6px; }
+  .filter-label{ font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); }
+  .segmented{ display:inline-flex; border:1px solid var(--line); border-radius:4px; overflow:hidden; }
+  .seg-btn{ background:var(--panel-raised); color:var(--muted); border:none; border-right:1px solid var(--line); padding:7px 12px; font-family:'Inter',sans-serif; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap; }
+  .seg-btn:last-child{ border-right:none; }
+  .seg-btn.active{ background:var(--gold); color:#1A1410; }
+  .seg-btn:hover:not(.active){ color:var(--cream); }
+
+  .plan-tag{ display:inline-block; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted); }
+  .plan-head-row{ display:flex; justify-content:space-between; align-items:center; gap:8px; }
+
+  .toolbar{ max-width:1200px; margin:14px auto 0; padding:0 20px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+  .toolbar-left{ display:flex; align-items:center; gap:10px; }
+  .save-status{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--good); min-height:14px; }
+  .clear-menu-wrap{ position:relative; }
+  .clear-menu{ position:absolute; top:calc(100% + 4px); right:0; background:var(--panel-raised); border:1px solid var(--line); border-radius:4px; min-width:170px; z-index:20; display:none; flex-direction:column; overflow:hidden; box-shadow:0 8px 20px rgba(0,0,0,0.4); }
+  .clear-menu.open{ display:flex; }
+  .clear-menu button{ background:none; border:none; color:var(--cream); text-align:left; padding:9px 12px; font-family:'Inter',sans-serif; font-size:12.5px; cursor:pointer; }
+  .clear-menu button.danger{ color:var(--red); font-weight:600; border-top:1px solid var(--line); }
+  .clear-menu button.danger:hover{ background:rgba(179,38,30,0.15); color:#e0534a; }
+  .clear-menu button:hover{ background:rgba(232,178,61,0.1); color:var(--gold); }
+
+  .filter-group select{ margin-bottom:0; width:auto; min-width:150px; padding:7px 10px; font-size:12.5px; }
+  .alist-remaining{ padding:9px 10px; font-family:'JetBrains Mono',monospace; font-size:14px; color:var(--gold); font-weight:700; background:var(--panel-raised); border:1px solid var(--line); border-radius:4px; }
+
+  @media (max-width: 600px){
+    header{ padding:24px 16px 14px; }
+    header h1{ font-size:38px; }
+    header p{ font-size:13px; }
+    .wrap{ padding:18px 12px 60px; gap:16px; }
+    .panel{ padding:15px; }
+    .panel h2{ font-size:19px; }
+    .add-showing-row{ grid-template-columns: 1fr; }
+    .row3{ grid-template-columns: 1fr; }
+    .film-sub-inputs{ flex-wrap:wrap; }
+    .reel-item{ grid-template-columns: 62px 1fr; gap:10px; }
+    .gap-row{ padding-left:62px; }
+    .filter-row{ flex-direction:column; gap:12px; }
+    .segmented{ width:100%; }
+    .seg-btn{ flex:1; text-align:center; padding:8px 6px; }
+    .filter-group select{ width:100%; }
+    .plan-card{ padding:14px; }
+    .toolbar{ flex-direction:column; align-items:stretch; gap:8px; }
+    .clear-menu-wrap, .clear-menu-wrap .btn{ width:100%; }
+    .clear-menu{ left:0; right:0; width:100%; }
+    .plan-head-row{ flex-wrap:wrap; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Now Booking</div>
+  <h1>MARQUEE ROUTER</h1>
+  <p>Add each film once, then list every showtime and theater it's playing at. It fits as many films together as it can — no overlaps, trailers included, travel between theaters accounted for — and if one won't fit, it just leaves that one out.</p>
+</header>
+<div class="sprockets"></div>
+
+<div class="toolbar">
+  <div class="toolbar-left">
+    <button class="btn btn-primary btn-small" onclick="savePlanState()">💾 Save Plan</button>
+    <span id="save-status" class="save-status"></span>
+  </div>
+  <div class="clear-menu-wrap">
+    <button class="btn btn-ghost btn-small" onclick="toggleClearMenu()">Clear ▾</button>
+    <div id="clear-menu" class="clear-menu">
+      <button onclick="clearTheaters()">Clear theaters</button>
+      <button onclick="clearFilms()">Clear films</button>
+      <button class="danger" onclick="clearEverything()">Clear everything</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div>
+    <div class="panel">
+      <h2>AMC A-List</h2>
+      <p class="sub">4 free movies per week, resetting every Friday. Mark which films use a credit in the film cards below, and this factors into planning.</p>
+      <div class="row" style="grid-template-columns: 1fr 1fr; align-items:end;">
+        <div>
+          <label for="alist-used">Already used this week</label>
+          <input type="number" id="alist-used" min="0" max="4" value="0">
+        </div>
+        <div>
+          <label>Credits remaining</label>
+          <div id="alist-remaining" class="alist-remaining">4</div>
+        </div>
+      </div>
+      <p class="sub" id="alist-week-range" style="margin-bottom:0;"></p>
+    </div>
+
+    <div class="panel">
+      <h2>Theaters</h2>
+      <p class="sub">Add every theater you might visit. Uncheck one to exclude it from lineup planning without deleting it — the lineups recalculate automatically.</p>
+      <div class="row" style="grid-template-columns: 1fr auto; align-items:end;">
+        <div>
+          <label for="nt-name">Theater name</label>
+          <input type="text" id="nt-name" placeholder="AMC Burbank 16" onkeydown="if(event.key==='Enter'){event.preventDefault(); addTheater();}">
+        </div>
+        <button class="btn btn-ghost btn-small" onclick="addTheater()">+ Add</button>
+      </div>
+      <p class="sub" id="theaters-sub" style="margin-bottom:0;">No theaters added yet.</p>
+      <div id="theater-list"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Add a Film</h2>
+      <p class="sub">Runtime and trailer buffer apply to every showing of this film, wherever it's playing.</p>
+      <label for="nf-title">Movie title</label>
+      <input type="text" id="nf-title" placeholder="e.g. Dune: Part Three">
+      <div class="row">
+        <div>
+          <label for="nf-runtime">Runtime (min)</label>
+          <input type="number" id="nf-runtime" min="1" placeholder="128">
+        </div>
+        <div>
+          <label for="nf-trailers">Trailer buffer (min)</label>
+          <input type="number" id="nf-trailers" min="0" value="22">
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="addFilm()">Add film</button>
+    </div>
+
+    <div class="panel">
+      <h2>Your Films</h2>
+      <p class="sub" id="films-sub">No films added yet.</p>
+      <div id="film-list"></div>
+    </div>
+
+    <div class="panel" id="travel-panel" style="display:none;">
+      <h2>Travel Between Theaters</h2>
+      <p class="sub">Minutes to get from one theater to another. Same-theater switches are always 0.</p>
+      <div class="travel-grid" id="travel-grid"></div>
+
+      <div class="maps-box">
+        <p id="maps-help">Auto-fill these with real drive times from Google Maps. Just use plain theater names — it looks up each address itself. Requires your own Google Maps API key with the Places API and Distance Matrix API enabled. For best results, include the city in the theater name (e.g. "AMC Burbank 16"). The key is only used in your browser — nothing is sent anywhere else.</p>
+        <input type="password" id="maps-key" placeholder="Google Maps API key" style="margin-bottom:8px;">
+        <button class="btn btn-ghost" style="width:100%;" onclick="autoFillTravelTimes()">Auto-fill via Google Maps</button>
+        <div id="maps-status" style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted); margin-top:6px;"></div>
+      </div>
+    </div>
+
+    <button class="btn btn-ghost" style="width:100%; margin-top:6px;" onclick="computeAndRender()">Recalculate lineups</button>
+  </div>
+
+  <div>
+    <div class="panel" id="saved-lineup-panel" style="display:none;">
+      <div class="results-head">
+        <h2 style="margin:0;">📌 Saved Lineup</h2>
+        <button class="btn btn-ghost btn-small" onclick="clearSavedLineup()">Clear</button>
+      </div>
+      <div id="saved-lineup-content"></div>
+    </div>
+
+    <div class="panel">
+      <div class="results-head">
+        <h2 style="margin:0;">Possible Lineups</h2>
+        <span class="count-badge" id="result-count"></span>
+      </div>
+
+      <div class="filter-row">
+        <div class="filter-group">
+          <span class="filter-label">Trailers</span>
+          <div class="segmented" id="overlap-filter">
+            <button class="seg-btn active" data-value="all" onclick="setOverlapFilter('all')">All</button>
+            <button class="seg-btn" data-value="clean" onclick="setOverlapFilter('clean')">No overlap</button>
+            <button class="seg-btn" data-value="overlap" onclick="setOverlapFilter('overlap')">Has overlap</button>
+          </div>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Theaters</span>
+          <div class="segmented" id="theater-filter">
+            <button class="seg-btn active" data-value="all" onclick="setTheaterFilter('all')">All</button>
+            <button class="seg-btn" data-value="same" onclick="setTheaterFilter('same')">Same theater</button>
+            <button class="seg-btn" data-value="multi" onclick="setTheaterFilter('multi')">Multiple theaters</button>
+          </div>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Start at</span>
+          <select id="start-theater-filter"><option value="">Any</option></select>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">End at</span>
+          <select id="end-theater-filter"><option value="">Any</option></select>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">A-List</span>
+          <div class="segmented" id="alist-filter">
+            <button class="seg-btn active" data-value="all" onclick="setAListBudgetFilter('all')">All</button>
+            <button class="seg-btn" data-value="within" onclick="setAListBudgetFilter('within')">Within budget</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="results"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ====================================================================
+// PASTE YOUR GOOGLE MAPS API KEY BETWEEN THE QUOTES BELOW.
+// If you do this, the key gets saved into this HTML file in plain text —
+// anyone who opens/views-source/shares this file can read and use it.
+// Don't upload this file anywhere public (GitHub, email, shared drive)
+// once a real key is in here, and set an HTTP referrer restriction on
+// the key in Google Cloud Console as a safety net.
+// Leave it blank ("") to keep using the on-screen key input field instead.
+// ====================================================================
+const GOOGLE_MAPS_API_KEY = "";
+
+let films = [];
+let theaters = [];
+let travelTimes = {};
+let filmCounter = 0, showingCounter = 0;
+let startTheaterFilter = '';
+let endTheaterFilter = '';
+let savedLineup = null;
+let lastUsedDate = todayStr();
+let aListUsedThisWeek = 0;
+let aListBudgetFilter = 'all';
+
+function pairKey(a, b){ return [a, b].sort().join('|||'); }
+
+// ---------- Date helpers (UTC-normalized day indices avoid timezone drift) ----------
+function dayIndexFromDateStr(dateStr){
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return Math.floor(Date.UTC(y, m - 1, d) / 86400000);
+}
+function dateStrFromDayIndex(dayIndex){
+  const d = new Date(dayIndex * 86400000);
+  const y = d.getUTCFullYear(), m = d.getUTCMonth() + 1, day = d.getUTCDate();
+  return `${y}-${String(m).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+}
+function todayStr(){
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+}
+function fmtDateLabel(dateStr){
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  return dt.toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric', timeZone:'UTC' });
+}
+function absTime(showing){
+  return dayIndexFromDateStr(showing.date) * 1440 + showing.time;
+}
+function absToLabel(abs){
+  const dayIndex = Math.floor(abs / 1440);
+  const minOfDay = ((abs % 1440) + 1440) % 1440;
+  return `${fmtDateLabel(dateStrFromDayIndex(dayIndex))}, ${fmt(minOfDay)}`;
+}
+
+// ---------- AMC A-List (4 credits/week, resets Friday) ----------
+function fridayCycleStart(dayIndex){
+  const dow = new Date(dayIndex * 86400000).getUTCDay(); // Sun=0 ... Fri=5, Sat=6
+  const diff = (dow - 5 + 7) % 7;
+  return dayIndex - diff;
+}
+function computeAListUsage(plan){
+  const groups = {};
+  plan.steps.forEach(s => {
+    if(!s.film.aList) return;
+    const cycleStart = fridayCycleStart(dayIndexFromDateStr(s.showing.date));
+    groups[cycleStart] = (groups[cycleStart] || 0) + 1;
+  });
+  return groups;
+}
+function describeAListUsage(plan){
+  const groups = computeAListUsage(plan);
+  const currentCycleStart = fridayCycleStart(dayIndexFromDateStr(todayStr()));
+  const keys = Object.keys(groups);
+  if(keys.length === 0) return { text: 'no A-List films', ok: true };
+  let ok = true;
+  const parts = keys.map(csStr => {
+    const cs = Number(csStr);
+    const count = groups[cs];
+    const budget = cs === currentCycleStart ? Math.max(0, 4 - aListUsedThisWeek) : 4;
+    if(count > budget) ok = false;
+    const label = cs === currentCycleStart ? 'this week' : `wk of ${fmtDateLabel(dateStrFromDayIndex(cs))}`;
+    return `${count}/${budget} ${label}`;
+  });
+  return { text: `A-List: ${parts.join(', ')}`, ok };
+}
+function aListBudgetOk(plan){
+  return describeAListUsage(plan).ok;
+}
+
+function addTheater(){
+  const input = document.getElementById('nt-name');
+  const name = input.value.trim();
+  if(!name) return;
+  if(theaters.some(t => t.name.toLowerCase() === name.toLowerCase())){
+    alert(`"${name}" is already on the list.`);
+    return;
+  }
+  theaters.push({ name, active: true });
+  input.value = '';
+  renderTheaters();
+  renderFilms();
+  renderTravelInputs();
+  computeAndRender();
+}
+
+function removeTheater(name){
+  const affected = films.reduce((n, f) => n + f.showings.filter(s => s.theater === name).length, 0);
+  if(affected > 0 && !confirm(`Remove "${name}"? ${affected} showtime${affected>1?'s':''} booked there will be removed too.`)) return;
+
+  theaters = theaters.filter(t => t.name !== name);
+  films.forEach(f => { f.showings = f.showings.filter(s => s.theater !== name); });
+
+  renderTheaters();
+  renderFilms();
+  renderTravelInputs();
+  computeAndRender();
+}
+
+function toggleTheaterActive(name, checked){
+  const t = theaters.find(x => x.name === name);
+  if(!t) return;
+  t.active = checked;
+  renderTheaters();
+  computeAndRender();
+}
+
+function renderTheaters(){
+  const sub = document.getElementById('theaters-sub');
+  const list = document.getElementById('theater-list');
+  if(theaters.length === 0){
+    sub.textContent = 'No theaters added yet.';
+    list.innerHTML = '';
+    renderEndpointFilters();
+    return;
+  }
+  const activeCount = theaters.filter(t => t.active).length;
+  sub.textContent = `${theaters.length} theater${theaters.length>1?'s':''} added · ${activeCount} included in planning.`;
+  list.innerHTML = theaters.map(t => `
+    <div class="theater-row ${t.active ? '' : 'excluded'}">
+      <label class="theater-row-label">
+        <input type="checkbox" class="film-check theater-toggle" data-theater-name="${escapeHtml(t.name)}" ${t.active ? 'checked' : ''}>
+        <span>${escapeHtml(t.name)}</span>
+      </label>
+      <button class="remove theater-remove-btn" data-theater-name="${escapeHtml(t.name)}" title="Remove">✕</button>
+    </div>
+  `).join('');
+  renderEndpointFilters();
+}
+
+function renderEndpointFilters(){
+  const startSel = document.getElementById('start-theater-filter');
+  const endSel = document.getElementById('end-theater-filter');
+  const options = '<option value="">Any</option>' + theaters.map(t => `<option value="${escapeHtml(t.name)}">${escapeHtml(t.name)}</option>`).join('');
+  startSel.innerHTML = options;
+  endSel.innerHTML = options;
+  if(!theaters.some(t => t.name === startTheaterFilter)) startTheaterFilter = '';
+  if(!theaters.some(t => t.name === endTheaterFilter)) endTheaterFilter = '';
+  startSel.value = startTheaterFilter;
+  endSel.value = endTheaterFilter;
+}
+
+function addFilm(){
+  const title = document.getElementById('nf-title').value.trim();
+  const runtime = parseInt(document.getElementById('nf-runtime').value, 10);
+  const trailers = parseInt(document.getElementById('nf-trailers').value, 10);
+
+  if(!title || !runtime){
+    alert('Enter a title and runtime first.');
+    return;
+  }
+  if(films.some(f => f.title.toLowerCase() === title.toLowerCase())){
+    alert(`"${title}" is already in your list — add its showtimes in the card below instead of re-adding it.`);
+    return;
+  }
+
+  films.push({
+    id: ++filmCounter,
+    title, runtime,
+    trailers: isNaN(trailers) ? 0 : trailers,
+    selected: true,
+    aList: true,
+    showings: []
+  });
+
+  document.getElementById('nf-title').value = '';
+  document.getElementById('nf-runtime').value = '';
+
+  renderFilms();
+  computeAndRender();
+}
+
+function removeFilm(id){
+  films = films.filter(f => f.id !== id);
+  renderFilms();
+  renderTravelInputs();
+  computeAndRender();
+}
+
+function toggleFilmSelected(id, checked){
+  const film = films.find(f => f.id === id);
+  if(!film) return;
+  film.selected = checked;
+  renderFilms();
+  computeAndRender();
+}
+
+function toggleFilmAList(id, checked){
+  const film = films.find(f => f.id === id);
+  if(!film) return;
+  film.aList = checked;
+  computeAndRender();
+}
+
+function updateFilmField(id, field, value){
+  const film = films.find(f => f.id === id);
+  if(!film) return;
+  film[field] = parseInt(value, 10) || 0;
+  computeAndRender();
+}
+
+function addShowing(filmId){
+  const theaterSelect = document.getElementById(`add-theater-${filmId}`);
+  const dateInput = document.getElementById(`add-date-${filmId}`);
+  const timeInput = document.getElementById(`add-time-${filmId}`);
+  const theater = theaterSelect.value;
+  const date = dateInput.value;
+  const time = timeInput.value;
+  if(!theater){
+    alert(theaters.length === 0 ? 'Add a theater first.' : 'Choose a theater.');
+    return;
+  }
+  if(!date){
+    alert('Choose a date.');
+    return;
+  }
+  if(!time){
+    alert('Enter a showtime.');
+    return;
+  }
+  const [h, m] = time.split(':').map(Number);
+  const film = films.find(f => f.id === filmId);
+  film.showings.push({ id: ++showingCounter, theater, date, time: h*60+m, timeLabel: time });
+  lastUsedDate = date;
+  timeInput.value = '';
+  renderFilms();
+  renderTravelInputs();
+  computeAndRender();
+}
+
+function removeShowing(filmId, showingId){
+  const film = films.find(f => f.id === filmId);
+  film.showings = film.showings.filter(s => s.id !== showingId);
+  renderFilms();
+  renderTravelInputs();
+  computeAndRender();
+}
+
+function fmt(min){
+  min = ((min % 1440) + 1440) % 1440;
+  let h = Math.floor(min/60), m = min%60;
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  let h12 = h % 12; if(h12===0) h12=12;
+  return `${h12}:${m.toString().padStart(2,'0')} ${ampm}`;
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// Safely embed a string as a single-quoted JS string literal inside an
+// HTML attribute that itself uses single quotes, e.g. onclick='fn(${jsAttr(x)})'.
+function jsAttr(str){
+  return "'" + String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
+}
+
+function renderFilms(){
+  const sub = document.getElementById('films-sub');
+  const list = document.getElementById('film-list');
+
+  if(films.length === 0){
+    sub.textContent = 'No films added yet.';
+    list.innerHTML = '';
+    return;
+  }
+  const selectedCount = films.filter(f => f.selected).length;
+  sub.textContent = `${films.length} film${films.length>1?'s':''} added · ${selectedCount} selected for planning.`;
+
+  const theaterOptions = theaters.map(t => `<option value="${escapeHtml(t.name)}">${escapeHtml(t.name)}</option>`).join('');
+
+  list.innerHTML = films.map(f => `
+    <div class="film-card ${f.selected ? '' : 'deselected'}">
+      <div class="film-head">
+        <div style="flex:1;">
+          <label class="film-title-row">
+            <input type="checkbox" class="film-check" ${f.selected ? 'checked' : ''} onchange="toggleFilmSelected(${f.id}, this.checked)">
+            <span class="film-title">${escapeHtml(f.title)}</span>
+          </label>
+          <div class="film-sub-inputs">
+            <div>
+              <label>Runtime</label>
+              <input type="number" class="mini" value="${f.runtime}" onchange="updateFilmField(${f.id}, 'runtime', this.value)">
+            </div>
+            <div>
+              <label>Trailers</label>
+              <input type="number" class="mini" value="${f.trailers}" onchange="updateFilmField(${f.id}, 'trailers', this.value)">
+            </div>
+            <div>
+              <label>A-List</label>
+              <label class="alist-check-wrap">
+                <input type="checkbox" class="film-check" ${f.aList ? 'checked' : ''} onchange="toggleFilmAList(${f.id}, this.checked)">
+              </label>
+            </div>
+          </div>
+        </div>
+        <button class="remove" onclick="removeFilm(${f.id})" title="Remove film">✕</button>
+      </div>
+
+      <div>
+        ${f.showings.length === 0
+          ? '<span style="color:var(--muted); font-size:12px;">No showtimes added yet.</span>'
+          : f.showings.map(s => `
+              <span class="showing-chip">
+                ${escapeHtml(s.theater)} · ${fmtDateLabel(s.date)} · ${fmt(s.time)}
+                <button onclick="removeShowing(${f.id}, ${s.id})" title="Remove">✕</button>
+              </span>
+            `).join('')
+        }
+      </div>
+
+      <div class="add-showing-row">
+        <input type="date" id="add-date-${f.id}" value="${lastUsedDate}">
+        <select id="add-theater-${f.id}" ${theaters.length === 0 ? 'disabled' : ''}>
+          <option value="">${theaters.length === 0 ? 'Add a theater first' : 'Select theater'}</option>
+          ${theaterOptions}
+        </select>
+        <input type="time" id="add-time-${f.id}">
+        <button class="btn btn-ghost btn-small" onclick="addShowing(${f.id})">+ Add</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderTravelInputs(){
+  const panel = document.getElementById('travel-panel');
+  const grid = document.getElementById('travel-grid');
+
+  if(theaters.length < 2){
+    panel.style.display = 'none';
+    return;
+  }
+  panel.style.display = 'block';
+
+  const names = theaters.map(t => t.name);
+  let pairs = [];
+  for(let i=0;i<names.length;i++){
+    for(let j=i+1;j<names.length;j++){
+      pairs.push([names[i], names[j]]);
+    }
+  }
+
+  grid.innerHTML = pairs.map(([a,b]) => {
+    const key = pairKey(a,b);
+    if(!(key in travelTimes)) travelTimes[key] = 15;
+    return `
+      <div class="travel-row">
+        <span>${escapeHtml(a)} ⇄ ${escapeHtml(b)}</span>
+        <input type="number" min="0" value="${travelTimes[key]}" onchange="travelTimes['${key}'] = parseInt(this.value,10) || 0; computeAndRender();">
+      </div>
+    `;
+  }).join('');
+}
+
+// ---------- Google Maps auto-fill ----------
+function loadGoogleMaps(apiKey){
+  return new Promise((resolve, reject) => {
+    if(window.google && window.google.maps && window.google.maps.DistanceMatrixService){
+      resolve();
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&libraries=places`;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Script failed to load'));
+    document.head.appendChild(script);
+  });
+}
+
+async function autoFillTravelTimes(){
+  const apiKey = GOOGLE_MAPS_API_KEY || document.getElementById('maps-key').value.trim();
+  const status = document.getElementById('maps-status');
+  if(!apiKey){ alert('Enter a Google Maps API key first (or paste one into GOOGLE_MAPS_API_KEY near the top of the code).'); return; }
+  if(theaters.length < 2){ return; }
+
+  status.textContent = 'Loading Google Maps…';
+  try{
+    await loadGoogleMaps(apiKey);
+    status.textContent = 'Looking up theater locations…';
+
+    const names = theaters.map(t => t.name);
+    const placeIds = {};
+    const failures = [];
+    await Promise.all(names.map(name =>
+      resolvePlaceId(name)
+        .then(id => { placeIds[name] = id; })
+        .catch(() => { failures.push(name); })
+    ));
+
+    const resolved = names.filter(name => placeIds[name]);
+    if(resolved.length < 2){
+      status.textContent = 'Could not locate enough theaters to calculate distances — try adding the city to each name.';
+      return;
+    }
+
+    const service = new google.maps.DistanceMatrixService();
+    status.textContent = 'Calculating drive times…';
+    const points = resolved.map(t => ({ placeId: placeIds[t] }));
+    service.getDistanceMatrix({
+      origins: points,
+      destinations: points,
+      travelMode: google.maps.TravelMode.DRIVING,
+    }, (response, statusCode) => {
+      if(statusCode !== 'OK'){
+        status.textContent = `Request failed: ${statusCode}`;
+        return;
+      }
+      let updated = 0;
+      for(let i=0;i<resolved.length;i++){
+        for(let j=i+1;j<resolved.length;j++){
+          const el = response.rows[i].elements[j];
+          if(el.status === 'OK'){
+            travelTimes[pairKey(resolved[i], resolved[j])] = Math.round(el.duration.value / 60);
+            updated++;
+          }
+        }
+      }
+      let msg = `Updated ${updated} theater pair${updated===1?'':'s'}.`;
+      if(failures.length > 0) msg += ` Couldn't locate: ${failures.join(', ')}.`;
+      status.textContent = msg;
+      renderTravelInputs();
+      computeAndRender();
+    });
+  }catch(e){
+    status.textContent = 'Could not load Google Maps — check the API key and that Maps JavaScript API, Places API, and Distance Matrix API are enabled.';
+  }
+}
+
+function resolvePlaceId(name){
+  return new Promise((resolve, reject) => {
+    const svc = new google.maps.places.PlacesService(document.createElement('div'));
+    svc.findPlaceFromQuery({ query: name, fields: ['place_id'] }, (results, status) => {
+      if(status === google.maps.places.PlacesServiceStatus.OK && results && results[0]){
+        resolve(results[0].place_id);
+      } else {
+        reject(new Error('not found'));
+      }
+    });
+  });
+}
+
+// ---------- Scheduling core ----------
+function cartesianCombos(filmSet){
+  let combos = [[]];
+  for(const film of filmSet){
+    const next = [];
+    for(const combo of combos){
+      for(const s of film.showings){
+        next.push([...combo, { film, showing: s }]);
+      }
+    }
+    combos = next;
+    if(combos.length > 60000) return null; // too big, bail
+  }
+  return combos;
+}
+
+function evaluateCombo(combo){
+  const sorted = [...combo].sort((a,b) => absTime(a.showing) - absTime(b.showing));
+  let prevEnd = null, prevTheater = null;
+  const steps = [];
+  let totalWait = 0, totalTravel = 0, totalOverlap = 0;
+  const theaterSet = new Set();
+
+  for(const pick of sorted){
+    const { film, showing } = pick;
+    const startAbs = absTime(showing);
+    let travel = 0, sameTheater = true;
+    if(prevTheater !== null){
+      sameTheater = prevTheater === showing.theater;
+      travel = sameTheater ? 0 : (travelTimes[pairKey(prevTheater, showing.theater)] ?? 15);
+    }
+    const earliestArrival = prevEnd === null ? -Infinity : prevEnd + travel;
+    let overlap = 0, wait = 0;
+    if(prevEnd !== null){
+      // Feasible as long as you arrive before the film itself starts (showtime + its trailer buffer),
+      // even if that means walking in partway through trailers. Works across day boundaries too,
+      // since everything here is in absolute minutes (day index * 1440 + minute-of-day).
+      if(earliestArrival > startAbs + film.trailers){
+        return { feasible:false };
+      }
+      overlap = Math.max(0, earliestArrival - startAbs);
+      wait = Math.max(0, startAbs - earliestArrival);
+    }
+    const end = startAbs + film.trailers + film.runtime;
+    steps.push({ film, showing, travel, sameTheater, wait, overlap, hasOverlap: overlap > 0, end, startAbs });
+    totalWait += wait;
+    totalTravel += travel;
+    totalOverlap += overlap;
+    theaterSet.add(showing.theater);
+    prevEnd = end;
+    prevTheater = showing.theater;
+  }
+
+  return {
+    feasible:true, steps, totalWait, totalTravel, totalOverlap,
+    hasOverlap: totalOverlap > 0,
+    sameTheaterOnly: theaterSet.size === 1,
+    finish: prevEnd, filmCount: sorted.length
+  };
+}
+
+function dedupeKey(steps){
+  return steps.map(s => `${s.film.id}:${s.showing.id}`).sort().join(',');
+}
+
+function combinations(arr, k){
+  const results = [];
+  function helper(start, combo){
+    if(combo.length === k){ results.push(combo.slice()); return; }
+    for(let i = start; i < arr.length; i++){
+      combo.push(arr[i]);
+      helper(i+1, combo);
+      combo.pop();
+    }
+  }
+  helper(0, []);
+  return results;
+}
+
+function bestForExactSize(eligible, k, evalBudget){
+  const subsets = combinations(eligible, k);
+  const results = [];
+  const seen = new Set();
+  let evaluated = 0;
+  let truncated = false;
+
+  outer:
+  for(const subset of subsets){
+    const combos = cartesianCombos(subset);
+    if(combos === null){ truncated = true; continue; }
+    for(const combo of combos){
+      evaluated++;
+      if(evaluated > evalBudget){ truncated = true; break outer; }
+      const ev = evaluateCombo(combo);
+      if(ev.feasible){
+        const key = dedupeKey(ev.steps);
+        if(!seen.has(key)){
+          seen.add(key);
+          results.push(ev);
+        }
+      }
+    }
+  }
+
+  results.sort((a,b) => (a.totalWait + a.totalTravel + a.totalOverlap*2) - (b.totalWait + b.totalTravel + b.totalOverlap*2) || a.finish - b.finish);
+  return { results, truncated };
+}
+
+let currentResults = [];
+let currentEligible = [];
+let currentPage = 0;
+const PAGE_SIZE = 8;
+
+let lastFullResults = [];
+let lastBestK = 0;
+let lastEligible = [];
+let currentNotesHtml = '';
+let overlapFilter = 'all';
+let theaterFilter = 'all';
+
+function setOverlapFilter(v){
+  overlapFilter = v;
+  updateSegUI('overlap-filter', v);
+  applyFiltersAndRender();
+}
+function setTheaterFilter(v){
+  theaterFilter = v;
+  updateSegUI('theater-filter', v);
+  applyFiltersAndRender();
+}
+function setAListBudgetFilter(v){
+  aListBudgetFilter = v;
+  updateSegUI('alist-filter', v);
+  applyFiltersAndRender();
+}
+function updateSegUI(containerId, value){
+  document.querySelectorAll(`#${containerId} .seg-btn`).forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.value === value);
+  });
+}
+
+function computeAndRender(){
+  const resultsEl = document.getElementById('results');
+  const countEl = document.getElementById('result-count');
+  currentResults = [];
+  currentPage = 0;
+  lastFullResults = [];
+
+  const selectedFilms = films.filter(f => f.selected);
+  const activeTheaterNames = new Set(theaters.filter(t => t.active).map(t => t.name));
+  const withActiveShowings = selectedFilms.map(f => ({
+    id: f.id, title: f.title, runtime: f.runtime, trailers: f.trailers, aList: f.aList,
+    showings: f.showings.filter(s => activeTheaterNames.has(s.theater))
+  }));
+  const eligible = withActiveShowings.filter(f => f.showings.length > 0);
+  const ineligible = withActiveShowings.filter(f => f.showings.length === 0);
+  currentEligible = eligible;
+  lastEligible = eligible;
+
+  if(films.length === 0){
+    resultsEl.innerHTML = '<div class="empty">Add a few films and showtimes to see possible lineups.</div>';
+    countEl.textContent = '';
+    return;
+  }
+  if(selectedFilms.length === 0){
+    resultsEl.innerHTML = '<div class="empty">No films are selected — check a film in the list to include it in planning.</div>';
+    countEl.textContent = '';
+    return;
+  }
+  if(theaters.length > 0 && activeTheaterNames.size === 0){
+    resultsEl.innerHTML = '<div class="empty">Every theater is excluded — include at least one theater to start planning.</div>';
+    countEl.textContent = '';
+    return;
+  }
+  if(eligible.length === 0){
+    resultsEl.innerHTML = '<div class="empty">Add at least one showtime to a selected film at an included theater to start planning.</div>';
+    countEl.textContent = '';
+    return;
+  }
+  if(eligible.length > 12){
+    resultsEl.innerHTML = '<div class="empty">That\'s a lot of films to weigh against each other at once — deselect a few, or plan in batches of 12 or fewer.</div>';
+    countEl.textContent = '';
+    return;
+  }
+
+  const ineligibleNote = ineligible.length > 0
+    ? `${ineligible.map(f => escapeHtml(f.title)).join(', ')} ${ineligible.length>1?'have':'has'} no showtimes at included theaters, so ${ineligible.length>1?'they\'re':'it\'s'} not in the running.`
+    : '';
+
+  const EVAL_BUDGET = 150000;
+  let best = null, bestK = 0, truncatedAny = false;
+
+  for(let k = eligible.length; k >= 1; k--){
+    const { results, truncated } = bestForExactSize(eligible, k, EVAL_BUDGET);
+    if(truncated) truncatedAny = true;
+    if(results.length > 0){
+      best = results;
+      bestK = k;
+      break;
+    }
+  }
+
+  if(!best){
+    resultsEl.innerHTML = '<div class="empty">No single showing works on its own — double-check your showtimes.</div>';
+    countEl.textContent = '0 lineups found';
+    return;
+  }
+
+  lastFullResults = best;
+  lastBestK = bestK;
+
+  let notes = '';
+  if(ineligibleNote) notes += `<div class="skip-note">${ineligibleNote}</div>`;
+  if(truncatedAny) notes += `<div class="skip-note">That was a big search space — showing the best found, though not every combination could be checked. Trim showtimes for an exhaustive pass.</div>`;
+  currentNotesHtml = notes;
+
+  applyFiltersAndRender();
+}
+
+function applyFiltersAndRender(){
+  const resultsEl = document.getElementById('results');
+  const countEl = document.getElementById('result-count');
+
+  if(lastFullResults.length === 0) return;
+
+  const filtered = lastFullResults.filter(r => {
+    if(overlapFilter === 'clean' && r.hasOverlap) return false;
+    if(overlapFilter === 'overlap' && !r.hasOverlap) return false;
+    if(theaterFilter === 'same' && !r.sameTheaterOnly) return false;
+    if(theaterFilter === 'multi' && r.sameTheaterOnly) return false;
+    if(startTheaterFilter && r.steps[0].showing.theater !== startTheaterFilter) return false;
+    if(endTheaterFilter && r.steps[r.steps.length-1].showing.theater !== endTheaterFilter) return false;
+    if(aListBudgetFilter === 'within' && !aListBudgetOk(r)) return false;
+    return true;
+  });
+
+  currentResults = filtered;
+  currentPage = 0;
+
+  if(filtered.length === 0){
+    resultsEl.innerHTML = currentNotesHtml + '<div class="empty">No lineups match these filters at the best-fitting size. Try widening the filters.</div>';
+    countEl.textContent = '0 matching';
+    return;
+  }
+
+  const sizeLabel = lastBestK === lastEligible.length ? `all ${lastBestK} film${lastBestK>1?'s':''}` : `the best ${lastBestK} of ${lastEligible.length} films`;
+  countEl.textContent = `${filtered.length} lineup${filtered.length>1?'s':''} fitting ${sizeLabel}`;
+
+  renderResultsPage();
+}
+
+function renderResultsPage(){
+  const resultsEl = document.getElementById('results');
+  if(currentResults.length === 0) return;
+
+  const totalPages = Math.ceil(currentResults.length / PAGE_SIZE);
+  const start = currentPage * PAGE_SIZE;
+  const pageItems = currentResults.slice(start, start + PAGE_SIZE);
+
+  let html = pageItems.map((plan, i) => renderPlan(plan, start + i === 0, start + i + 1, currentEligible, start + i)).join('');
+
+  if(totalPages > 1){
+    html += `
+      <div class="pagination">
+        <button class="btn btn-ghost btn-small" onclick="changePage(-1)" ${currentPage === 0 ? 'disabled' : ''}>← Prev</button>
+        <span class="page-indicator">Page ${currentPage + 1} of ${totalPages}</span>
+        <button class="btn btn-ghost btn-small" onclick="changePage(1)" ${currentPage >= totalPages - 1 ? 'disabled' : ''}>Next →</button>
+      </div>`;
+  }
+
+  resultsEl.innerHTML = currentNotesHtml + html;
+}
+
+function changePage(delta){
+  const totalPages = Math.ceil(currentResults.length / PAGE_SIZE);
+  currentPage = Math.max(0, Math.min(totalPages - 1, currentPage + delta));
+  renderResultsPage();
+}
+
+function renderPlan(plan, isBest, rank, eligible, globalIndex){
+  const steps = plan.steps;
+  let rows = '';
+  steps.forEach((s, i) => {
+    if(i > 0){
+      const gapParts = [];
+      if(!s.sameTheater) gapParts.push(`<span class="gap-label travel">${s.travel}min travel</span>`);
+      if(s.hasOverlap) gapParts.push(`<span class="gap-label overlap">${s.overlap}min into trailers</span>`);
+      if(s.wait > 0) gapParts.push(`<span class="gap-label wait">${s.wait}min wait</span>`);
+      if(gapParts.length === 0) gapParts.push(`<span class="gap-label">back-to-back</span>`);
+      rows += `<div class="gap-row"><div class="gap-line"></div>${gapParts.join('')}<div class="gap-line"></div></div>`;
+    }
+    rows += `
+      <div class="reel-item">
+        <div class="reel-time">${fmtDateLabel(s.showing.date)}<br>${fmt(s.showing.time)}</div>
+        <div>
+          <div class="reel-film">${escapeHtml(s.film.title)}${s.film.aList ? ' <span class="alist-badge">A-LIST</span>' : ''}</div>
+          <div class="reel-sub">${escapeHtml(s.showing.theater)} · trailers ${s.film.trailers}min → out by ${absToLabel(s.end)}</div>
+        </div>
+      </div>`;
+  });
+
+  const includedIds = new Set(plan.steps.map(s => s.film.id));
+  const skipped = eligible.filter(f => !includedIds.has(f.id)).map(f => f.title);
+  const skipLine = skipped.length > 0 ? `<div class="skip-note">Skips: ${skipped.map(escapeHtml).join(', ')}</div>` : '';
+
+  const theaterTag = plan.sameTheaterOnly ? 'same theater' : `${new Set(plan.steps.map(s=>s.showing.theater)).size} theaters`;
+  const overlapTag = plan.totalOverlap > 0 ? `${plan.totalOverlap}min trailer overlap` : 'no trailer overlap';
+  const aListInfo = describeAListUsage(plan);
+  const aListTag = `<span class="${aListInfo.ok ? '' : 'alist-warn'}">${aListInfo.text}</span>`;
+
+  return `
+    <div class="plan-card ${isBest ? 'best' : ''}">
+      <div class="plan-head-row">
+        <div class="plan-rank">${isBest ? '★ Tightest Lineup' : `Option ${rank}`}</div>
+        <button class="btn btn-ghost btn-small" onclick="saveLineup(${globalIndex})">📌 Save this lineup</button>
+      </div>
+      <div class="plan-stats">${plan.filmCount} film${plan.filmCount>1?'s':''} · done by ${absToLabel(plan.finish)} · ${plan.totalWait}min waiting · ${plan.totalTravel}min travel · ${overlapTag} · ${theaterTag} · ${aListTag}</div>
+      ${skipLine}
+      <div class="reel">${rows}</div>
+    </div>
+  `;
+}
+
+// ---------- Save / load / clear ----------
+const STORAGE_KEY = 'marqueeRouterState';
+const SAVED_LINEUP_KEY = 'marqueeRouterSavedLineup';
+
+function savePlanState(){
+  const state = {
+    films, theaters, travelTimes,
+    overlapFilter, theaterFilter, startTheaterFilter, endTheaterFilter, aListBudgetFilter,
+    filmCounter, showingCounter, lastUsedDate, aListUsedThisWeek
+  };
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    flashSaveStatus('Saved ✓');
+  }catch(e){
+    flashSaveStatus('Could not save — storage blocked or full.');
+  }
+}
+
+function loadPlanState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return false;
+    const state = JSON.parse(raw);
+    films = state.films || [];
+    theaters = state.theaters || [];
+    travelTimes = state.travelTimes || {};
+    overlapFilter = state.overlapFilter || 'all';
+    theaterFilter = state.theaterFilter || 'all';
+    startTheaterFilter = state.startTheaterFilter || '';
+    endTheaterFilter = state.endTheaterFilter || '';
+    aListBudgetFilter = state.aListBudgetFilter || 'all';
+    filmCounter = state.filmCounter || 0;
+    showingCounter = state.showingCounter || 0;
+    lastUsedDate = state.lastUsedDate || todayStr();
+    aListUsedThisWeek = typeof state.aListUsedThisWeek === 'number' ? state.aListUsedThisWeek : 0;
+    films.forEach(f => { if(typeof f.aList !== 'boolean') f.aList = true; });
+    return true;
+  }catch(e){
+    return false;
+  }
+}
+
+let saveStatusTimer = null;
+function flashSaveStatus(msg){
+  const el = document.getElementById('save-status');
+  el.textContent = msg;
+  clearTimeout(saveStatusTimer);
+  saveStatusTimer = setTimeout(() => { el.textContent = ''; }, 3000);
+}
+
+function toggleClearMenu(){
+  document.getElementById('clear-menu').classList.toggle('open');
+}
+
+function closeClearMenu(){
+  document.getElementById('clear-menu').classList.remove('open');
+}
+
+function clearTheaters(){
+  if(!confirm('Remove all theaters and any showtimes booked at them? Films will stay, but lose those showtimes.')) return;
+  theaters = [];
+  films.forEach(f => { f.showings = []; });
+  renderTheaters();
+  renderFilms();
+  renderTravelInputs();
+  computeAndRender();
+  closeClearMenu();
+}
+
+function clearFilms(){
+  if(!confirm('Remove all films and their showtimes? Theaters will stay.')) return;
+  films = [];
+  renderFilms();
+  renderTravelInputs();
+  computeAndRender();
+  closeClearMenu();
+}
+
+function clearEverything(){
+  if(!confirm('Clear everything — films, theaters, showtimes, and travel times? This cannot be undone.')) return;
+  films = [];
+  theaters = [];
+  travelTimes = {};
+  overlapFilter = 'all';
+  theaterFilter = 'all';
+  startTheaterFilter = '';
+  endTheaterFilter = '';
+  aListBudgetFilter = 'all';
+  aListUsedThisWeek = 0;
+  lastUsedDate = todayStr();
+  clearSavedLineup();
+  localStorage.removeItem(STORAGE_KEY);
+  updateSegUI('overlap-filter', 'all');
+  updateSegUI('theater-filter', 'all');
+  updateSegUI('alist-filter', 'all');
+  renderAListPanel();
+  renderTheaters();
+  renderFilms();
+  renderTravelInputs();
+  computeAndRender();
+  closeClearMenu();
+}
+
+// ---------- Saved (pinned) lineup ----------
+function saveLineup(idx){
+  const plan = currentResults[idx];
+  if(!plan) return;
+  savedLineup = plan.steps.map(s => ({
+    title: s.film.title,
+    theater: s.showing.theater,
+    date: s.showing.date,
+    time: s.showing.time,
+    trailers: s.film.trailers,
+    aList: !!s.film.aList,
+    end: s.end,
+    travel: s.travel,
+    wait: s.wait,
+    overlap: s.overlap
+  }));
+  try{ localStorage.setItem(SAVED_LINEUP_KEY, JSON.stringify(savedLineup)); }catch(e){}
+  renderSavedLineup();
+  flashSaveStatus('Lineup saved ✓');
+}
+
+function clearSavedLineup(){
+  savedLineup = null;
+  localStorage.removeItem(SAVED_LINEUP_KEY);
+  renderSavedLineup();
+}
+
+function loadSavedLineup(){
+  try{
+    const raw = localStorage.getItem(SAVED_LINEUP_KEY);
+    if(raw) savedLineup = JSON.parse(raw);
+  }catch(e){ savedLineup = null; }
+}
+
+function renderSavedLineup(){
+  const panel = document.getElementById('saved-lineup-panel');
+  const content = document.getElementById('saved-lineup-content');
+  if(!savedLineup || savedLineup.length === 0){
+    panel.style.display = 'none';
+    return;
+  }
+  panel.style.display = 'block';
+  let rows = '';
+  savedLineup.forEach((s, i) => {
+    if(i > 0){
+      const gapParts = [];
+      if(s.travel > 0) gapParts.push(`<span class="gap-label travel">${s.travel}min travel</span>`);
+      if(s.overlap > 0) gapParts.push(`<span class="gap-label overlap">${s.overlap}min into trailers</span>`);
+      if(s.wait > 0) gapParts.push(`<span class="gap-label wait">${s.wait}min wait</span>`);
+      if(gapParts.length === 0) gapParts.push(`<span class="gap-label">back-to-back</span>`);
+      rows += `<div class="gap-row"><div class="gap-line"></div>${gapParts.join('')}<div class="gap-line"></div></div>`;
+    }
+    rows += `
+      <div class="reel-item">
+        <div class="reel-time">${fmtDateLabel(s.date)}<br>${fmt(s.time)}</div>
+        <div>
+          <div class="reel-film">${escapeHtml(s.title)}${s.aList ? ' <span class="alist-badge">A-LIST</span>' : ''}</div>
+          <div class="reel-sub">${escapeHtml(s.theater)} · trailers ${s.trailers}min → out by ${absToLabel(s.end)}</div>
+        </div>
+      </div>`;
+  });
+  content.innerHTML = `<div class="reel">${rows}</div>`;
+}
+
+// ---------- Init ----------
+loadSavedLineup();
+loadPlanState();
+renderAListPanel();
+renderTheaters();
+renderFilms();
+renderTravelInputs();
+computeAndRender();
+renderSavedLineup();
+updateSegUI('overlap-filter', overlapFilter);
+updateSegUI('theater-filter', theaterFilter);
+updateSegUI('alist-filter', aListBudgetFilter);
+
+function renderAListPanel(){
+  const usedInput = document.getElementById('alist-used');
+  const remainingEl = document.getElementById('alist-remaining');
+  const rangeEl = document.getElementById('alist-week-range');
+  usedInput.value = aListUsedThisWeek;
+  remainingEl.textContent = Math.max(0, 4 - aListUsedThisWeek);
+  const currentCycleStart = fridayCycleStart(dayIndexFromDateStr(todayStr()));
+  const cycleEnd = currentCycleStart + 6;
+  rangeEl.textContent = `This week: ${fmtDateLabel(dateStrFromDayIndex(currentCycleStart))} – ${fmtDateLabel(dateStrFromDayIndex(cycleEnd))}`;
+}
+
+document.getElementById('alist-used').addEventListener('change', (e) => {
+  let v = parseInt(e.target.value, 10);
+  if(isNaN(v)) v = 0;
+  v = Math.max(0, Math.min(4, v));
+  aListUsedThisWeek = v;
+  renderAListPanel();
+  applyFiltersAndRender();
+});
+
+// Delegated listeners — avoids re-attaching handlers on every re-render,
+// and sidesteps the quoting issues inline onclick/onchange had with theater names.
+document.getElementById('theater-list').addEventListener('change', (e) => {
+  const cb = e.target.closest('.theater-toggle');
+  if(cb) toggleTheaterActive(cb.dataset.theaterName, cb.checked);
+});
+document.getElementById('theater-list').addEventListener('click', (e) => {
+  const btn = e.target.closest('.theater-remove-btn');
+  if(btn) removeTheater(btn.dataset.theaterName);
+});
+document.getElementById('start-theater-filter').addEventListener('change', (e) => {
+  startTheaterFilter = e.target.value;
+  applyFiltersAndRender();
+});
+document.getElementById('end-theater-filter').addEventListener('change', (e) => {
+  endTheaterFilter = e.target.value;
+  applyFiltersAndRender();
+});
+document.addEventListener('click', (e) => {
+  const wrap = document.querySelector('.clear-menu-wrap');
+  if(wrap && !wrap.contains(e.target)) closeClearMenu();
+});
+
+if(GOOGLE_MAPS_API_KEY){
+  document.getElementById('maps-key').style.display = 'none';
+  document.getElementById('maps-help').innerHTML = 'Auto-fill these with real drive times from Google Maps — using the API key saved in this file. Just use plain theater names; it looks up each address itself. For best results, include the city in the theater name (e.g. "AMC Burbank 16").';
+}
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+</script>
+
+</body>
+</html>
