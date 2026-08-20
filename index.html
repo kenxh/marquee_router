@@ -41,20 +41,57 @@
     font-family:'Inter',sans-serif;
     min-height:100vh;
   }
-  .sprockets{
-    height:14px;
-    background-image: repeating-linear-gradient(90deg, var(--gold) 0 8px, transparent 8px 20px);
-    background-color: var(--red-deep);
-    border-top:1px solid var(--red);
-    border-bottom:1px solid var(--red);
-  }
-  header{ padding:34px 24px 18px; text-align:center; }
-  header .eyebrow{ font-family:'JetBrains Mono',monospace; letter-spacing:0.3em; font-size:11px; color:var(--red); text-transform:uppercase; }
-  header h1{ font-family:'Bebas Neue',sans-serif; font-size:52px; letter-spacing:0.04em; margin:4px 0 6px; text-shadow:0 0 22px rgba(232,178,61,0.22), 0 0 40px rgba(179,38,30,0.18); }
-  header p{ color:var(--muted); font-size:14px; max-width:620px; margin:0 auto; line-height:1.5; }
 
-  .wrap{ max-width:1200px; margin:0 auto; padding:28px 20px 80px; display:grid; grid-template-columns: 420px 1fr; gap:24px; }
-  @media (max-width: 900px){ .wrap{ grid-template-columns: 1fr; } }
+  /* ---------- Top app bar ---------- */
+  .topbar{
+    position:sticky; top:0; z-index:30;
+    display:flex; align-items:center; gap:10px;
+    padding:12px 16px;
+    background:var(--panel);
+    border-bottom:1px solid var(--red-deep);
+  }
+  .hamburger-btn{
+    background:none; border:none; color:var(--gold); font-size:22px; line-height:1;
+    cursor:pointer; padding:6px 8px; border-radius:4px;
+  }
+  .hamburger-btn:hover{ background:rgba(232,178,61,0.1); }
+  .topbar-title{ font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:0.03em; color:var(--cream); flex:1; }
+  .topbar-save-btn{ background:var(--gold); color:#1A1410; border:none; border-radius:4px; padding:8px 12px; font-weight:700; font-size:12.5px; cursor:pointer; }
+  .save-status{ font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--good); display:block; text-align:right; }
+
+  /* ---------- Drawer ---------- */
+  .drawer-overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:40; display:none; }
+  .drawer-overlay.open{ display:block; }
+  .drawer{
+    position:fixed; top:0; left:0; bottom:0; width:280px; max-width:82vw;
+    background:var(--panel); border-right:1px solid var(--red-deep);
+    z-index:50; transform:translateX(-100%); transition:transform .2s ease;
+    display:flex; flex-direction:column; overflow-y:auto;
+  }
+  .drawer.open{ transform:translateX(0); }
+  .drawer-header{ padding:22px 20px 14px; border-bottom:1px solid var(--line); }
+  .drawer-header .eyebrow{ font-family:'JetBrains Mono',monospace; letter-spacing:0.25em; font-size:10px; color:var(--red); text-transform:uppercase; }
+  .drawer-header h2{ font-family:'Bebas Neue',sans-serif; font-size:26px; margin:2px 0 0; color:var(--gold); letter-spacing:0.03em; }
+  .drawer-nav{ padding:10px 0; flex:1; }
+  .drawer-link{
+    display:flex; align-items:center; gap:12px; padding:13px 20px; color:var(--cream);
+    cursor:pointer; font-size:14.5px; font-weight:600; border-left:3px solid transparent;
+    background:none; border-top:none; border-right:none; border-bottom:none; width:100%; text-align:left; font-family:'Inter',sans-serif;
+  }
+  .drawer-link .icon{ font-size:16px; width:20px; text-align:center; }
+  .drawer-link:hover{ background:rgba(232,178,61,0.08); }
+  .drawer-link.active{ border-left-color:var(--gold); color:var(--gold); background:rgba(232,178,61,0.1); }
+  .drawer-footer{ padding:14px 20px 20px; border-top:1px solid var(--line); }
+  .drawer-footer-label{ font-size:10.5px; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-bottom:10px; }
+  .drawer-clear-btn{ display:block; width:100%; text-align:left; background:none; border:none; color:var(--cream); padding:9px 4px; font-family:'Inter',sans-serif; font-size:13px; cursor:pointer; }
+  .drawer-clear-btn:hover{ color:var(--gold); }
+  .drawer-clear-btn.danger{ color:var(--red); font-weight:700; border-top:1px solid var(--line); margin-top:4px; padding-top:12px; }
+  .drawer-clear-btn.danger:hover{ color:#e0534a; }
+
+  /* ---------- Pages ---------- */
+  .page{ display:none; }
+  .page.active{ display:block; }
+  .wrap{ max-width:760px; margin:0 auto; padding:20px 16px 80px; }
 
   .panel{ background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--red-deep); border-radius:6px; padding:20px; }
   .panel + .panel{ margin-top:20px; }
@@ -62,7 +99,7 @@
   .panel .sub{ color:var(--muted); font-size:12.5px; margin:0 0 16px; line-height:1.5; }
 
   label{ display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:5px; }
-  input[type=text], input[type=time], input[type=number], input[type=password], select{
+  input[type=text], input[type=time], input[type=date], input[type=number], input[type=password], select{
     width:100%; background:var(--panel-raised); border:1px solid var(--line); color:var(--cream);
     padding:9px 10px; border-radius:4px; font-family:'Inter',sans-serif; font-size:14px;
     margin-bottom:12px;
@@ -86,7 +123,7 @@
   .film-title-row{ display:flex; align-items:center; gap:9px; cursor:pointer; margin:0; text-transform:none; letter-spacing:normal; }
   .film-check{ width:16px; height:16px; accent-color:var(--gold); margin:0; flex-shrink:0; cursor:pointer; }
   .film-title{ font-weight:700; font-size:15.5px; color:var(--cream); }
-  .film-sub-inputs{ display:flex; gap:8px; margin-top:6px; }
+  .film-sub-inputs{ display:flex; gap:8px; margin-top:6px; flex-wrap:wrap; }
   .film-sub-inputs label{ margin:0 0 3px; }
   .film-sub-inputs .mini{ width:80px; }
   .film-sub-inputs input{ padding:6px 8px; font-size:12.5px; }
@@ -150,29 +187,30 @@
   .seg-btn:last-child{ border-right:none; }
   .seg-btn.active{ background:var(--gold); color:#1A1410; }
   .seg-btn:hover:not(.active){ color:var(--cream); }
-
-  .plan-tag{ display:inline-block; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted); }
-  .plan-head-row{ display:flex; justify-content:space-between; align-items:center; gap:8px; }
-
-  .toolbar{ max-width:1200px; margin:14px auto 0; padding:0 20px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
-  .toolbar-left{ display:flex; align-items:center; gap:10px; }
-  .save-status{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--good); min-height:14px; }
-  .clear-menu-wrap{ position:relative; }
-  .clear-menu{ position:absolute; top:calc(100% + 4px); right:0; background:var(--panel-raised); border:1px solid var(--line); border-radius:4px; min-width:170px; z-index:20; display:none; flex-direction:column; overflow:hidden; box-shadow:0 8px 20px rgba(0,0,0,0.4); }
-  .clear-menu.open{ display:flex; }
-  .clear-menu button{ background:none; border:none; color:var(--cream); text-align:left; padding:9px 12px; font-family:'Inter',sans-serif; font-size:12.5px; cursor:pointer; }
-  .clear-menu button.danger{ color:var(--red); font-weight:600; border-top:1px solid var(--line); }
-  .clear-menu button.danger:hover{ background:rgba(179,38,30,0.15); color:#e0534a; }
-  .clear-menu button:hover{ background:rgba(232,178,61,0.1); color:var(--gold); }
-
   .filter-group select{ margin-bottom:0; width:auto; min-width:150px; padding:7px 10px; font-size:12.5px; }
+
+  .plan-head-row{ display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; }
+
   .alist-remaining{ padding:9px 10px; font-family:'JetBrains Mono',monospace; font-size:14px; color:var(--gold); font-weight:700; background:var(--panel-raised); border:1px solid var(--line); border-radius:4px; }
 
+  /* ---------- Folders page ---------- */
+  .folder-card{ background:var(--panel-raised); border:1px solid var(--line); border-radius:6px; padding:16px; margin-bottom:16px; }
+  .folder-head{ display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px; }
+  .folder-name{ font-family:'Bebas Neue',sans-serif; font-size:19px; color:var(--gold); letter-spacing:0.02em; }
+  .folder-meta{ font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--muted); margin-top:2px; }
+  .saved-lineup-card{ background:var(--panel); border:1px solid var(--line); border-radius:5px; padding:12px 14px; margin-top:12px; }
+  .saved-lineup-timestamp{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted); }
+
+  /* ---------- Modal ---------- */
+  .modal-overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:60; display:none; align-items:center; justify-content:center; padding:20px; }
+  .modal-overlay.open{ display:flex; }
+  .modal{ background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--red-deep); border-radius:8px; padding:22px; max-width:400px; width:100%; }
+  .modal h3{ font-family:'Bebas Neue',sans-serif; font-size:21px; color:var(--gold); margin:0 0 8px; letter-spacing:0.03em; }
+  .modal .sub{ color:var(--muted); font-size:12.5px; margin:0 0 14px; }
+  .modal-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:6px; }
+
   @media (max-width: 600px){
-    header{ padding:24px 16px 14px; }
-    header h1{ font-size:38px; }
-    header p{ font-size:13px; }
-    .wrap{ padding:18px 12px 60px; gap:16px; }
+    .topbar-title{ font-size:17px; }
     .panel{ padding:15px; }
     .panel h2{ font-size:19px; }
     .add-showing-row{ grid-template-columns: 1fr; }
@@ -185,42 +223,48 @@
     .seg-btn{ flex:1; text-align:center; padding:8px 6px; }
     .filter-group select{ width:100%; }
     .plan-card{ padding:14px; }
-    .toolbar{ flex-direction:column; align-items:stretch; gap:8px; }
-    .clear-menu-wrap, .clear-menu-wrap .btn{ width:100%; }
-    .clear-menu{ left:0; right:0; width:100%; }
     .plan-head-row{ flex-wrap:wrap; }
   }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="eyebrow">Now Booking</div>
-  <h1>MARQUEE ROUTER</h1>
-  <p>Add each film once, then list every showtime and theater it's playing at. It fits as many films together as it can — no overlaps, trailers included, travel between theaters accounted for — and if one won't fit, it just leaves that one out.</p>
-</header>
-<div class="sprockets"></div>
-
-<div class="toolbar">
-  <div class="toolbar-left">
-    <button class="btn btn-primary btn-small" onclick="savePlanState()">💾 Save Plan</button>
-    <span id="save-status" class="save-status"></span>
-  </div>
-  <div class="clear-menu-wrap">
-    <button class="btn btn-ghost btn-small" onclick="toggleClearMenu()">Clear ▾</button>
-    <div id="clear-menu" class="clear-menu">
-      <button onclick="clearTheaters()">Clear theaters</button>
-      <button onclick="clearFilms()">Clear films</button>
-      <button class="danger" onclick="clearEverything()">Clear everything</button>
-    </div>
+<div class="topbar">
+  <button class="hamburger-btn" onclick="toggleDrawer()" aria-label="Menu">☰</button>
+  <span class="topbar-title" id="topbar-title">Films</span>
+  <div>
+    <button class="topbar-save-btn" onclick="savePlanState()">💾 Save</button>
+    <span class="save-status" id="save-status"></span>
   </div>
 </div>
 
-<div class="wrap">
-  <div>
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+<nav class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div class="eyebrow">Now Booking</div>
+    <h2>MARQUEE ROUTER</h2>
+  </div>
+  <div class="drawer-nav">
+    <button class="drawer-link" data-page="alist" onclick="showPage('alist')"><span class="icon">🎟️</span> AMC A-List</button>
+    <button class="drawer-link" data-page="theaters" onclick="showPage('theaters')"><span class="icon">📍</span> Theaters</button>
+    <button class="drawer-link" data-page="films" onclick="showPage('films')"><span class="icon">🎬</span> Films</button>
+    <button class="drawer-link" data-page="lineups" onclick="showPage('lineups')"><span class="icon">🗓️</span> Lineups</button>
+    <button class="drawer-link" data-page="folders" onclick="showPage('folders')"><span class="icon">📁</span> Saved Folders</button>
+  </div>
+  <div class="drawer-footer">
+    <div class="drawer-footer-label">Clear</div>
+    <button class="drawer-clear-btn" onclick="clearTheaters()">Clear theaters</button>
+    <button class="drawer-clear-btn" onclick="clearFilms()">Clear films</button>
+    <button class="drawer-clear-btn danger" onclick="clearEverything()">Clear everything</button>
+  </div>
+</nav>
+
+<!-- ===================== PAGE: A-List ===================== -->
+<div class="page" id="page-alist">
+  <div class="wrap">
     <div class="panel">
       <h2>AMC A-List</h2>
-      <p class="sub">4 free movies per week, resetting every Friday. Mark which films use a credit in the film cards below, and this factors into planning.</p>
+      <p class="sub">4 free movies per week, resetting every Friday. Mark which films use a credit on the Films page, and this factors into planning.</p>
       <div class="row" style="grid-template-columns: 1fr 1fr; align-items:end;">
         <div>
           <label for="alist-used">Already used this week</label>
@@ -233,7 +277,12 @@
       </div>
       <p class="sub" id="alist-week-range" style="margin-bottom:0;"></p>
     </div>
+  </div>
+</div>
 
+<!-- ===================== PAGE: Theaters ===================== -->
+<div class="page" id="page-theaters">
+  <div class="wrap">
     <div class="panel">
       <h2>Theaters</h2>
       <p class="sub">Add every theater you might visit. Uncheck one to exclude it from lineup planning without deleting it — the lineups recalculate automatically.</p>
@@ -248,6 +297,24 @@
       <div id="theater-list"></div>
     </div>
 
+    <div class="panel" id="travel-panel" style="display:none;">
+      <h2>Travel Between Theaters</h2>
+      <p class="sub">Minutes to get from one theater to another. Same-theater switches are always 0.</p>
+      <div class="travel-grid" id="travel-grid"></div>
+
+      <div class="maps-box">
+        <p id="maps-help">Auto-fill these with real drive times from Google Maps. Just use plain theater names — it looks up each address itself. Requires your own Google Maps API key with the Places API and Distance Matrix API enabled. For best results, include the city in the theater name (e.g. "AMC Burbank 16"). The key is only used in your browser — nothing is sent anywhere else.</p>
+        <input type="password" id="maps-key" placeholder="Google Maps API key" style="margin-bottom:8px;">
+        <button class="btn btn-ghost" style="width:100%;" onclick="autoFillTravelTimes()">Auto-fill via Google Maps</button>
+        <div id="maps-status" style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted); margin-top:6px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== PAGE: Films ===================== -->
+<div class="page" id="page-films">
+  <div class="wrap">
     <div class="panel">
       <h2>Add a Film</h2>
       <p class="sub">Runtime and trailer buffer apply to every showing of this film, wherever it's playing.</p>
@@ -271,37 +338,19 @@
       <p class="sub" id="films-sub">No films added yet.</p>
       <div id="film-list"></div>
     </div>
-
-    <div class="panel" id="travel-panel" style="display:none;">
-      <h2>Travel Between Theaters</h2>
-      <p class="sub">Minutes to get from one theater to another. Same-theater switches are always 0.</p>
-      <div class="travel-grid" id="travel-grid"></div>
-
-      <div class="maps-box">
-        <p id="maps-help">Auto-fill these with real drive times from Google Maps. Just use plain theater names — it looks up each address itself. Requires your own Google Maps API key with the Places API and Distance Matrix API enabled. For best results, include the city in the theater name (e.g. "AMC Burbank 16"). The key is only used in your browser — nothing is sent anywhere else.</p>
-        <input type="password" id="maps-key" placeholder="Google Maps API key" style="margin-bottom:8px;">
-        <button class="btn btn-ghost" style="width:100%;" onclick="autoFillTravelTimes()">Auto-fill via Google Maps</button>
-        <div id="maps-status" style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted); margin-top:6px;"></div>
-      </div>
-    </div>
-
-    <button class="btn btn-ghost" style="width:100%; margin-top:6px;" onclick="computeAndRender()">Recalculate lineups</button>
   </div>
+</div>
 
-  <div>
-    <div class="panel" id="saved-lineup-panel" style="display:none;">
-      <div class="results-head">
-        <h2 style="margin:0;">📌 Saved Lineup</h2>
-        <button class="btn btn-ghost btn-small" onclick="clearSavedLineup()">Clear</button>
-      </div>
-      <div id="saved-lineup-content"></div>
-    </div>
-
+<!-- ===================== PAGE: Lineups ===================== -->
+<div class="page" id="page-lineups">
+  <div class="wrap">
     <div class="panel">
       <div class="results-head">
         <h2 style="margin:0;">Possible Lineups</h2>
         <span class="count-badge" id="result-count"></span>
       </div>
+
+      <button class="btn btn-primary" style="margin-bottom:16px;" onclick="computeAndRender()">🔄 Regenerate Lineups</button>
 
       <div class="filter-row">
         <div class="filter-group">
@@ -342,6 +391,35 @@
   </div>
 </div>
 
+<!-- ===================== PAGE: Folders ===================== -->
+<div class="page" id="page-folders">
+  <div class="wrap">
+    <div class="panel">
+      <h2>Saved Folders</h2>
+      <p class="sub">Lineups you've saved, grouped into folders. These stick around even after you clear films, theaters, or everything — only deleting them here removes them.</p>
+      <div id="folders-content"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== Save-to-folder modal ===================== -->
+<div class="modal-overlay" id="save-modal-overlay">
+  <div class="modal">
+    <h3>Save Lineup</h3>
+    <p class="sub" id="save-modal-date"></p>
+    <label for="save-modal-folder-select">Folder</label>
+    <select id="save-modal-folder-select" onchange="toggleNewFolderInput()"></select>
+    <div id="save-modal-new-folder-wrap">
+      <label for="save-modal-new-folder-name">New folder name</label>
+      <input type="text" id="save-modal-new-folder-name">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-small" onclick="closeSaveModal()">Cancel</button>
+      <button class="btn btn-primary" style="width:auto;" onclick="confirmSaveToFolder()">Save</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ====================================================================
 // PASTE YOUR GOOGLE MAPS API KEY BETWEEN THE QUOTES BELOW.
@@ -360,10 +438,15 @@ let travelTimes = {};
 let filmCounter = 0, showingCounter = 0;
 let startTheaterFilter = '';
 let endTheaterFilter = '';
-let savedLineup = null;
 let lastUsedDate = todayStr();
+let lastUsedTheater = '';
 let aListUsedThisWeek = 0;
 let aListBudgetFilter = 'all';
+
+// Saved folders — persisted separately from the working plan, so clearing
+// films/theaters/everything never touches them.
+let savedFolders = [];
+let folderCounter = 0, savedLineupCounter = 0;
 
 function pairKey(a, b){ return [a, b].sort().join('|||'); }
 
@@ -430,6 +513,35 @@ function aListBudgetOk(plan){
   return describeAListUsage(plan).ok;
 }
 
+// ---------- Page navigation ----------
+const PAGE_TITLES = { alist:'AMC A-List', theaters:'Theaters', films:'Films', lineups:'Possible Lineups', folders:'Saved Folders' };
+let activePageId = 'films';
+
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const target = document.getElementById('page-' + id);
+  if(target) target.classList.add('active');
+  document.querySelectorAll('.drawer-link').forEach(l => l.classList.toggle('active', l.dataset.page === id));
+  document.getElementById('topbar-title').textContent = PAGE_TITLES[id] || '';
+  activePageId = id;
+  try{ localStorage.setItem('marqueeRouterLastPage', id); }catch(e){}
+  closeDrawer();
+  window.scrollTo(0, 0);
+  if(id === 'folders') renderFoldersPage();
+}
+function openDrawer(){
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('drawer-overlay').classList.add('open');
+}
+function closeDrawer(){
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('open');
+}
+function toggleDrawer(){
+  document.getElementById('drawer').classList.contains('open') ? closeDrawer() : openDrawer();
+}
+
+// ---------- Theaters ----------
 function addTheater(){
   const input = document.getElementById('nt-name');
   const name = input.value.trim();
@@ -452,6 +564,7 @@ function removeTheater(name){
 
   theaters = theaters.filter(t => t.name !== name);
   films.forEach(f => { f.showings = f.showings.filter(s => s.theater !== name); });
+  if(lastUsedTheater === name) lastUsedTheater = '';
 
   renderTheaters();
   renderFilms();
@@ -502,6 +615,7 @@ function renderEndpointFilters(){
   endSel.value = endTheaterFilter;
 }
 
+// ---------- Films ----------
 function addFilm(){
   const title = document.getElementById('nf-title').value.trim();
   const runtime = parseInt(document.getElementById('nf-runtime').value, 10);
@@ -584,6 +698,7 @@ function addShowing(filmId){
   const film = films.find(f => f.id === filmId);
   film.showings.push({ id: ++showingCounter, theater, date, time: h*60+m, timeLabel: time });
   lastUsedDate = date;
+  lastUsedTheater = theater;
   timeInput.value = '';
   renderFilms();
   renderTravelInputs();
@@ -612,12 +727,6 @@ function escapeHtml(str){
   return div.innerHTML;
 }
 
-// Safely embed a string as a single-quoted JS string literal inside an
-// HTML attribute that itself uses single quotes, e.g. onclick='fn(${jsAttr(x)})'.
-function jsAttr(str){
-  return "'" + String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
-}
-
 function renderFilms(){
   const sub = document.getElementById('films-sub');
   const list = document.getElementById('film-list');
@@ -630,7 +739,7 @@ function renderFilms(){
   const selectedCount = films.filter(f => f.selected).length;
   sub.textContent = `${films.length} film${films.length>1?'s':''} added · ${selectedCount} selected for planning.`;
 
-  const theaterOptions = theaters.map(t => `<option value="${escapeHtml(t.name)}">${escapeHtml(t.name)}</option>`).join('');
+  const theaterOptions = theaters.map(t => `<option value="${escapeHtml(t.name)}" ${t.name === lastUsedTheater ? 'selected' : ''}>${escapeHtml(t.name)}</option>`).join('');
 
   list.innerHTML = films.map(f => `
     <div class="film-card ${f.selected ? '' : 'deselected'}">
@@ -663,7 +772,7 @@ function renderFilms(){
       <div>
         ${f.showings.length === 0
           ? '<span style="color:var(--muted); font-size:12px;">No showtimes added yet.</span>'
-          : f.showings.map(s => `
+          : [...f.showings].sort((a,b) => a.theater.localeCompare(b.theater) || absTime(a) - absTime(b)).map(s => `
               <span class="showing-chip">
                 ${escapeHtml(s.theater)} · ${fmtDateLabel(s.date)} · ${fmt(s.time)}
                 <button onclick="removeShowing(${f.id}, ${s.id})" title="Remove">✕</button>
@@ -675,7 +784,7 @@ function renderFilms(){
       <div class="add-showing-row">
         <input type="date" id="add-date-${f.id}" value="${lastUsedDate}">
         <select id="add-theater-${f.id}" ${theaters.length === 0 ? 'disabled' : ''}>
-          <option value="">${theaters.length === 0 ? 'Add a theater first' : 'Select theater'}</option>
+          <option value="" ${lastUsedTheater ? '' : 'selected'}>${theaters.length === 0 ? 'Add a theater first' : 'Select theater'}</option>
           ${theaterOptions}
         </select>
         <input type="time" id="add-time-${f.id}">
@@ -1116,7 +1225,7 @@ function renderPlan(plan, isBest, rank, eligible, globalIndex){
     <div class="plan-card ${isBest ? 'best' : ''}">
       <div class="plan-head-row">
         <div class="plan-rank">${isBest ? '★ Tightest Lineup' : `Option ${rank}`}</div>
-        <button class="btn btn-ghost btn-small" onclick="saveLineup(${globalIndex})">📌 Save this lineup</button>
+        <button class="btn btn-ghost btn-small" onclick="openSaveModal(${globalIndex})">📌 Save this lineup</button>
       </div>
       <div class="plan-stats">${plan.filmCount} film${plan.filmCount>1?'s':''} · done by ${absToLabel(plan.finish)} · ${plan.totalWait}min waiting · ${plan.totalTravel}min travel · ${overlapTag} · ${theaterTag} · ${aListTag}</div>
       ${skipLine}
@@ -1125,15 +1234,14 @@ function renderPlan(plan, isBest, rank, eligible, globalIndex){
   `;
 }
 
-// ---------- Save / load / clear ----------
+// ---------- Save / load / clear (working plan) ----------
 const STORAGE_KEY = 'marqueeRouterState';
-const SAVED_LINEUP_KEY = 'marqueeRouterSavedLineup';
 
 function savePlanState(){
   const state = {
     films, theaters, travelTimes,
     overlapFilter, theaterFilter, startTheaterFilter, endTheaterFilter, aListBudgetFilter,
-    filmCounter, showingCounter, lastUsedDate, aListUsedThisWeek
+    filmCounter, showingCounter, lastUsedDate, lastUsedTheater, aListUsedThisWeek
   };
   try{
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -1159,6 +1267,7 @@ function loadPlanState(){
     filmCounter = state.filmCounter || 0;
     showingCounter = state.showingCounter || 0;
     lastUsedDate = state.lastUsedDate || todayStr();
+    lastUsedTheater = state.lastUsedTheater || '';
     aListUsedThisWeek = typeof state.aListUsedThisWeek === 'number' ? state.aListUsedThisWeek : 0;
     films.forEach(f => { if(typeof f.aList !== 'boolean') f.aList = true; });
     return true;
@@ -1175,23 +1284,16 @@ function flashSaveStatus(msg){
   saveStatusTimer = setTimeout(() => { el.textContent = ''; }, 3000);
 }
 
-function toggleClearMenu(){
-  document.getElementById('clear-menu').classList.toggle('open');
-}
-
-function closeClearMenu(){
-  document.getElementById('clear-menu').classList.remove('open');
-}
-
 function clearTheaters(){
   if(!confirm('Remove all theaters and any showtimes booked at them? Films will stay, but lose those showtimes.')) return;
   theaters = [];
   films.forEach(f => { f.showings = []; });
+  lastUsedTheater = '';
   renderTheaters();
   renderFilms();
   renderTravelInputs();
   computeAndRender();
-  closeClearMenu();
+  closeDrawer();
 }
 
 function clearFilms(){
@@ -1200,11 +1302,11 @@ function clearFilms(){
   renderFilms();
   renderTravelInputs();
   computeAndRender();
-  closeClearMenu();
+  closeDrawer();
 }
 
 function clearEverything(){
-  if(!confirm('Clear everything — films, theaters, showtimes, and travel times? This cannot be undone.')) return;
+  if(!confirm('Clear everything — films, theaters, showtimes, and travel times? Saved folders are not affected. This cannot be undone.')) return;
   films = [];
   theaters = [];
   travelTimes = {};
@@ -1215,7 +1317,7 @@ function clearEverything(){
   aListBudgetFilter = 'all';
   aListUsedThisWeek = 0;
   lastUsedDate = todayStr();
-  clearSavedLineup();
+  lastUsedTheater = '';
   localStorage.removeItem(STORAGE_KEY);
   updateSegUI('overlap-filter', 'all');
   updateSegUI('theater-filter', 'all');
@@ -1225,14 +1327,79 @@ function clearEverything(){
   renderFilms();
   renderTravelInputs();
   computeAndRender();
-  closeClearMenu();
+  closeDrawer();
 }
 
-// ---------- Saved (pinned) lineup ----------
-function saveLineup(idx){
+// ---------- Saved folders ----------
+const FOLDERS_KEY = 'marqueeRouterFolders';
+
+function loadFolders(){
+  try{
+    const raw = localStorage.getItem(FOLDERS_KEY);
+    if(!raw) return;
+    const data = JSON.parse(raw);
+    savedFolders = data.folders || [];
+    folderCounter = data.folderCounter || 0;
+    savedLineupCounter = data.savedLineupCounter || 0;
+  }catch(e){ savedFolders = []; }
+}
+
+function persistFolders(){
+  try{
+    localStorage.setItem(FOLDERS_KEY, JSON.stringify({ folders: savedFolders, folderCounter, savedLineupCounter }));
+  }catch(e){}
+}
+
+let pendingSaveIndex = null;
+
+function openSaveModal(idx){
   const plan = currentResults[idx];
   if(!plan) return;
-  savedLineup = plan.steps.map(s => ({
+  pendingSaveIndex = idx;
+
+  const date = plan.steps[0].showing.date;
+  document.getElementById('save-modal-date').textContent = `Showtime date: ${fmtDateLabel(date)}`;
+
+  const select = document.getElementById('save-modal-folder-select');
+  const matching = savedFolders.find(f => f.showDate === date);
+  select.innerHTML = savedFolders.map(f => `<option value="${f.id}">${escapeHtml(f.name)} (${fmtDateLabel(f.showDate)})</option>`).join('')
+    + `<option value="__new__">+ New folder</option>`;
+  select.value = matching ? String(matching.id) : '__new__';
+
+  document.getElementById('save-modal-new-folder-name').value = fmtDateLabel(date);
+  toggleNewFolderInput();
+  document.getElementById('save-modal-overlay').classList.add('open');
+}
+
+function toggleNewFolderInput(){
+  const select = document.getElementById('save-modal-folder-select');
+  document.getElementById('save-modal-new-folder-wrap').style.display = select.value === '__new__' ? 'block' : 'none';
+}
+
+function closeSaveModal(){
+  document.getElementById('save-modal-overlay').classList.remove('open');
+  pendingSaveIndex = null;
+}
+
+function confirmSaveToFolder(){
+  if(pendingSaveIndex === null) return closeSaveModal();
+  const plan = currentResults[pendingSaveIndex];
+  if(!plan) return closeSaveModal();
+
+  const select = document.getElementById('save-modal-folder-select');
+  let folder;
+  if(select.value === '__new__'){
+    const name = document.getElementById('save-modal-new-folder-name').value.trim();
+    if(!name){ alert('Enter a folder name.'); return; }
+    const date = plan.steps[0].showing.date;
+    folder = { id: ++folderCounter, name, showDate: date, lineups: [] };
+    savedFolders.push(folder);
+  } else {
+    folder = savedFolders.find(f => f.id === Number(select.value));
+    if(!folder) return;
+  }
+
+  const snapshot = plan.steps.map(s => ({
     title: s.film.title,
     theater: s.showing.theater,
     date: s.showing.date,
@@ -1244,34 +1411,41 @@ function saveLineup(idx){
     wait: s.wait,
     overlap: s.overlap
   }));
-  try{ localStorage.setItem(SAVED_LINEUP_KEY, JSON.stringify(savedLineup)); }catch(e){}
-  renderSavedLineup();
-  flashSaveStatus('Lineup saved ✓');
+  folder.lineups.push({ id: ++savedLineupCounter, savedAt: Date.now(), steps: snapshot });
+
+  persistFolders();
+  renderFoldersPage();
+  closeSaveModal();
+  flashSaveStatus('Lineup saved to folder ✓');
 }
 
-function clearSavedLineup(){
-  savedLineup = null;
-  localStorage.removeItem(SAVED_LINEUP_KEY);
-  renderSavedLineup();
-}
-
-function loadSavedLineup(){
-  try{
-    const raw = localStorage.getItem(SAVED_LINEUP_KEY);
-    if(raw) savedLineup = JSON.parse(raw);
-  }catch(e){ savedLineup = null; }
-}
-
-function renderSavedLineup(){
-  const panel = document.getElementById('saved-lineup-panel');
-  const content = document.getElementById('saved-lineup-content');
-  if(!savedLineup || savedLineup.length === 0){
-    panel.style.display = 'none';
+function renderFoldersPage(){
+  const container = document.getElementById('folders-content');
+  if(!container) return;
+  if(savedFolders.length === 0){
+    container.innerHTML = '<div class="empty">No saved lineups yet. On the Lineups page, tap "📌 Save this lineup" on any option to file it here.</div>';
     return;
   }
-  panel.style.display = 'block';
+  const sorted = [...savedFolders].sort((a,b) => dayIndexFromDateStr(a.showDate) - dayIndexFromDateStr(b.showDate));
+  container.innerHTML = sorted.map(folder => `
+    <div class="folder-card">
+      <div class="folder-head">
+        <div>
+          <div class="folder-name">${escapeHtml(folder.name)}</div>
+          <div class="folder-meta">${fmtDateLabel(folder.showDate)} · ${folder.lineups.length} lineup${folder.lineups.length>1?'s':''}</div>
+        </div>
+        <button class="remove folder-delete-btn" data-folder-id="${folder.id}" title="Delete folder">✕</button>
+      </div>
+      <div class="folder-lineups">
+        ${folder.lineups.map(l => renderSavedLineupCard(folder.id, l)).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderSavedLineupCard(folderId, lineup){
   let rows = '';
-  savedLineup.forEach((s, i) => {
+  lineup.steps.forEach((s, i) => {
     if(i > 0){
       const gapParts = [];
       if(s.travel > 0) gapParts.push(`<span class="gap-label travel">${s.travel}min travel</span>`);
@@ -1289,18 +1463,27 @@ function renderSavedLineup(){
         </div>
       </div>`;
   });
-  content.innerHTML = `<div class="reel">${rows}</div>`;
+  const savedDate = new Date(lineup.savedAt);
+  const savedLabel = isNaN(savedDate.getTime()) ? '' : `Saved ${savedDate.toLocaleDateString()} ${savedDate.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})}`;
+  return `
+    <div class="saved-lineup-card">
+      <div class="plan-head-row">
+        <span class="saved-lineup-timestamp">${savedLabel}</span>
+        <button class="remove saved-lineup-delete-btn" data-folder-id="${folderId}" data-lineup-id="${lineup.id}" title="Delete lineup">✕</button>
+      </div>
+      <div class="reel">${rows}</div>
+    </div>
+  `;
 }
 
 // ---------- Init ----------
-loadSavedLineup();
+loadFolders();
 loadPlanState();
 renderAListPanel();
 renderTheaters();
 renderFilms();
 renderTravelInputs();
 computeAndRender();
-renderSavedLineup();
 updateSegUI('overlap-filter', overlapFilter);
 updateSegUI('theater-filter', theaterFilter);
 updateSegUI('alist-filter', aListBudgetFilter);
@@ -1343,10 +1526,50 @@ document.getElementById('end-theater-filter').addEventListener('change', (e) => 
   endTheaterFilter = e.target.value;
   applyFiltersAndRender();
 });
-document.addEventListener('click', (e) => {
-  const wrap = document.querySelector('.clear-menu-wrap');
-  if(wrap && !wrap.contains(e.target)) closeClearMenu();
+
+// Folder / saved-lineup delete — with confirmation warnings
+document.getElementById('folders-content').addEventListener('click', (e) => {
+  const fBtn = e.target.closest('.folder-delete-btn');
+  if(fBtn){
+    const id = Number(fBtn.dataset.folderId);
+    const folder = savedFolders.find(f => f.id === id);
+    if(!folder) return;
+    if(confirm(`Delete the folder "${folder.name}" and all ${folder.lineups.length} lineup${folder.lineups.length>1?'s':''} inside it? This cannot be undone.`)){
+      savedFolders = savedFolders.filter(f => f.id !== id);
+      persistFolders();
+      renderFoldersPage();
+    }
+    return;
+  }
+  const lBtn = e.target.closest('.saved-lineup-delete-btn');
+  if(lBtn){
+    const folderId = Number(lBtn.dataset.folderId);
+    const lineupId = Number(lBtn.dataset.lineupId);
+    const folder = savedFolders.find(f => f.id === folderId);
+    if(!folder) return;
+    if(confirm('Delete this saved lineup? This cannot be undone.')){
+      folder.lineups = folder.lineups.filter(l => l.id !== lineupId);
+      persistFolders();
+      renderFoldersPage();
+    }
+  }
 });
+
+// Close the drawer if you tap outside it (overlay already handles this, this is a fallback for Esc etc.)
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape'){
+    closeDrawer();
+    closeSaveModal();
+  }
+});
+
+// Restore last-visited page, default to Films
+let startPage = 'films';
+try{
+  const last = localStorage.getItem('marqueeRouterLastPage');
+  if(last && PAGE_TITLES[last]) startPage = last;
+}catch(e){}
+showPage(startPage);
 
 if(GOOGLE_MAPS_API_KEY){
   document.getElementById('maps-key').style.display = 'none';
